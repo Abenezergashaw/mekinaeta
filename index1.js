@@ -1,79 +1,32 @@
+// index.js
+const express = require("express");
 const TelegramBot = require("node-telegram-bot-api");
-const mysql = require("mysql2/promise");
-const fs = require("fs");
-const token = "8260792818:AAG-MnHOaeqZmLkW4_Frl8CHwMhaz9EZ1ck";
-const CHAT_ID = "-1003059845988";
-const bot = new TelegramBot(token, { polling: true });
+const pool = require("./db");
 
-const storageFile = "./message_ids.json";
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-// const pool = mysql.createPool({
-//   host: "localhost",
-//   user: "root",
-//   password: "",
-//   database: "mekina_eta",
-//   waitForConnections: true,
-//   connectionLimit: 10,
-//   queueLimit: 0,
-// });
-const pool = mysql.createPool({
-  host: "localhost",
-  user: "abeni",
-  password: "123456",
-  database: "mekina_eta",
-});
+// Replace with your BotFather token
+const TOKEN = "8260792818:AAG-MnHOaeqZmLkW4_Frl8CHwMhaz9EZ1ck";
 
-function chunkArray(arr, size) {
-  const chunks = [];
-  for (let i = 0; i < arr.length; i += size) {
-    chunks.push(arr.slice(i, i + size));
-  }
-  return chunks;
-}
-const PAGE_SIZE = 100;
-let messageData = [];
+const chatId = -1003059845988; // your group ID
 
-if (fs.existsSync(storageFile)) {
-  try {
-    messageData = JSON.parse(fs.readFileSync(storageFile, "utf-8"));
-    console.log("Loaded message data from storageFile.");
-  } catch (err) {
-    console.error("Failed to parse storage file, starting fresh.");
-    messageData = [];
-  }
-}
+// Create bot instance (polling mode)
+const bot = new TelegramBot(TOKEN, { polling: true });
 
-function saveMessageData() {
-  fs.writeFileSync(storageFile, JSON.stringify(messageData, null, 2));
-}
 const userStates = {};
 
-async function sendNumbersWithPhones(chatId) {
-  messageData = []; // reset
+const numbers = Array.from({ length: 2000 }, (_, i) => i + 1);
+const PAGE_SIZE = 100;
 
-  const [rows] = await pool.query(
-    "SELECT number, phone FROM taken ORDER BY number ASC"
-  );
-  const lines = rows.map(
-    (r) => `${r.number} -- ${r.phone && r.phone.trim() !== "" ? r.phone : ""}`
-  );
-  const chunks = chunkArray(lines, 200);
-
-  for (let i = 0; i < chunks.length; i++) {
-    const text = chunks[i].join("\n");
-    try {
-      const sent = await bot.sendMessage(chatId, text);
-      messageData.push({ id: sent.message_id, text });
-      saveMessageData();
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    } catch (err) {
-      console.error("Failed to send chunk", i, err);
-    }
-  }
-
-  console.log("All chunks sent!");
+// Utility: Get page data
+function getPage(page) {
+  const start = page * pageSize;
+  const end = start + pageSize;
+  return numbers.slice(start, end).join(", ");
 }
 
+// Handle /start command
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
   delete userStates[chatId];
@@ -95,162 +48,38 @@ bot.onText(/\/start/, (msg) => {
   bot.sendMessage(chatId, "👇", options);
 });
 
-async function sendPage(chatId, page, numbers) {
-  const start = page * PAGE_SIZE;
-  const end = start + PAGE_SIZE;
-  const pageNumbers = numbers.slice(start, end);
-
-  if (pageNumbers.length === 0) {
-    return bot.sendMessage(chatId, "የተያዙ ቁጥሮች የሉም።");
+bot.onText(/\/send/, async (msg) => {
+  if (msg.chat.id !== chatId) {
+    return bot.sendMessage(msg.chat.id, "Run this command inside the group.");
   }
 
-  const totalPages = Math.ceil(numbers.length / PAGE_SIZE);
-  const message = `ጠቅላላ  እጣዎች ፡ ${2000}\n\nጠቅላላ የተያዙ እጣዎች ፡ ${
-    numbers.length
-  }\n\nቀሪ እጣዎች ፡ ${2000 - numbers.length}\n\n📋 ገፅ ${
-    page + 1
-  }/${totalPages}\n\n እጣዎች\n\n${pageNumbers.join(", ")}`;
+  const sent = await bot.sendMessage(chatId, "📌 Initial message from bot");
+  console.log("Message sent with id:", sent.message_id);
+});
 
-  // Inline buttons for pagination
-  const opts = {
-    reply_markup: {
-      inline_keyboard: [
-        [
-          ...(page > 0
-            ? [{ text: "⬅️ Prev", callback_data: `prev_${page}` }]
-            : []),
-          ...(end < numbers.length
-            ? [{ text: "Next ➡️", callback_data: `next_${page}` }]
-            : []),
-        ],
-      ],
-    },
-  };
+// Command: /edit — bot edits the last sent message
+bot.onText(/\/edit/, async (msg) => {
+  const messageIdToEdit = 16; // replace with actual message_id you got from /send
+  await bot.editMessageText("✅ Edited message content", {
+    chat_id: chatId,
+    message_id: messageIdToEdit,
+  });
+});
 
-  await bot.sendMessage(chatId, message, opts);
-}
-
-// async function editMessage() {
-//   if (messageData.length === 0) {
-//     try {
-//       await sendNumbersWithPhones(CHAT_ID);
-//     } catch (err) {
-//       console.error(err);
-//       bot.sendMessage(CHAT_ID, "❌ Failed to send numbers.");
-//     }
-//     return;
-//   }
-
-//   const [rows] = await pool.query(
-//     "SELECT number, phone FROM taken ORDER BY number ASC"
-//   );
-//   const lines = rows.map(
-//     (r) =>
-//       `${r.number} -- ${
-//         r.phone && r.phone.trim() !== "" ? r.phone : "          "
-//       }`
-//   );
-//   const chunks = chunkArray(lines, 200);
-
-//   for (let i = 0; i < chunks.length; i++) {
-//     const newText = chunks[i].join("\n");
-
-//     if (messageData[i].text !== newText) {
-//       await bot.editMessageText(newText, {
-//         chat_id: CHAT_ID,
-//         message_id: messageData[i].id,
-//       });
-
-//       messageData[i].text = newText;
-//       saveMessageData(); // persist after each edit
-//     }
-
-//     await new Promise((resolve) => setTimeout(resolve, 500));
-//   }
-//   //bot.sendMessage(CHAT_ID, "♻️ Refreshed all messages and saved to storage!");
-// }
-
-async function editMessage(n) {
-  if (messageData.length === 0) {
-    try {
-      await sendNumbersWithPhones(CHAT_ID);
-    } catch (err) {
-      console.error(err);
-      bot.sendMessage(CHAT_ID, "❌ Failed to send numbers.");
-    }
-    return;
-  }
-
-  try {
-    const [rows] = await pool.query(
-      "SELECT number, phone FROM taken ORDER BY number ASC"
-    );
-
-    const lines = rows.map(
-      (r) =>
-        `${r.number} -- ${
-          r.phone && r.phone.trim() !== "" ? r.phone : "          "
-        }`
-    );
-
-    const chunks = chunkArray(lines, 200);
-
-    for (let i = 0; i < chunks.length; i++) {
-      const newText = chunks[i].join("\n");
-
-      if (messageData[i].text !== newText) {
-        try {
-          await bot.editMessageText(newText, {
-            chat_id: CHAT_ID,
-            message_id: messageData[i].id,
-          });
-          bot.sendMessage(CHAT_ID, `እጣ ቁጥር ${n} ተይዟል።`);
-
-          messageData[i].text = newText;
-          saveMessageData(); // persist after each edit
-        } catch (err) {
-          if (
-            err.response &&
-            err.response.body &&
-            err.response.body.description &&
-            err.response.body.description.includes("message to edit not found")
-          ) {
-            console.warn("⚠️ Message deleted. Resetting all messages...");
-
-            // delete all old messages (just in case some remain)
-            for (const msg of messageData) {
-              try {
-                await bot.deleteMessage(CHAT_ID, msg.id);
-              } catch (delErr) {
-                console.error("Failed to delete old message:", delErr.message);
-              }
-            }
-
-            // reset state
-            messageData = [];
-            saveMessageData();
-
-            // send fresh messages
-            await sendNumbersWithPhones(CHAT_ID);
-            bot.sendMessage(CHAT_ID, `እጣ ቁጥር ${n} ተይዟል።`);
-            return;
-          } else {
-            console.error("Unexpected error editing message:", err.message);
-          }
-        }
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }
-  } catch (err) {
-    console.error("❌ editMessage failed:", err);
-    bot.sendMessage(CHAT_ID, "❌ Failed to refresh messages.");
-  }
-}
-
+// Handle button responses
 bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
   const text = msg.text;
+
+  if (text === "a") {
+    // bot.sendMessage(-1003059845988, "Hello group 👋");
+    bot.editMessageText("Updated message content here", {
+      chat_id: -1003059845988,
+      message_id: 3829621, // keep track of this when you first send
+    });
+  }
+
+  console.log("Group chat_id is:", msg.chat.id);
 
   if (text === "አዲስ ሰው መመዝገብ 👤") {
     userStates[chatId] = { step: "awaitingPhone" };
@@ -412,6 +241,42 @@ bot.on("message", async (msg) => {
   return;
 });
 
+async function sendPage(chatId, page, numbers) {
+  const start = page * PAGE_SIZE;
+  const end = start + PAGE_SIZE;
+  const pageNumbers = numbers.slice(start, end);
+
+  if (pageNumbers.length === 0) {
+    return bot.sendMessage(chatId, "No more numbers.");
+  }
+
+  const totalPages = Math.ceil(numbers.length / PAGE_SIZE);
+  const message = `ጠቅላላ  እጣዎች ፡ ${2000}\n\nጠቅላላ የተያዙ እጣዎች ፡ ${
+    numbers.length
+  }\n\nቀሪ እጣዎች ፡ ${2000 - numbers.length}\n\n📋 ገፅ ${
+    page + 1
+  }/${totalPages}\n\n እጣዎች\n\n${pageNumbers.join(", ")}`;
+
+  // Inline buttons for pagination
+  const opts = {
+    reply_markup: {
+      inline_keyboard: [
+        [
+          ...(page > 0
+            ? [{ text: "⬅️ Prev", callback_data: `prev_${page}` }]
+            : []),
+          ...(end < numbers.length
+            ? [{ text: "Next ➡️", callback_data: `next_${page}` }]
+            : []),
+        ],
+      ],
+    },
+  };
+
+  await bot.sendMessage(chatId, message, opts);
+}
+
+// Handle pagination button clicks
 bot.on("callback_query", async (query) => {
   const chatId = query.message.chat.id;
   const data = query.data;
@@ -432,6 +297,11 @@ bot.on("callback_query", async (query) => {
 
   // Acknowledge button click
   bot.answerCallbackQuery(query.id);
+});
+
+// Basic express route
+app.get("/", (req, res) => {
+  res.send("Telegram bot server is running 🚀");
 });
 
 async function createUser(data) {
@@ -475,15 +345,6 @@ async function createUser(data) {
       "Update numbers set selectedNumbers = json_array_append(selectedNumbers, '$', ?) where id = ?",
       [data.chosenNumber, 1]
     );
-
-    await pool.query("Update taken set phone = ? where number = ?", [
-      data.phone,
-      data.chosenNumber,
-    ]);
-
-    setTimeout(() => {
-      editMessage(data.chosenNumber);
-    }, 150);
 
     // console.log("✅ Game inserted successfully");
   } catch (err) {
@@ -578,13 +439,12 @@ async function deleteUser(phone) {
           "UPDATE numbers SET selectedNumbers = ? WHERE id = 1",
           [JSON.stringify(updatedNumbers)]
         );
-        await pool.query("UPDATE taken SET phone = '' WHERE number = ?", [n]);
       }
     }
 
     // 3. Delete user
     await pool.query("DELETE FROM user WHERE phone = ?", [phone]);
-    editMessage();
+
     // ✅ Return success
     return { success: true, message: "ስልክ ቁጥር በሚገባ ተደልቷል።" };
   } catch (err) {
@@ -593,3 +453,7 @@ async function deleteUser(phone) {
     return { success: false, message: err.message };
   }
 }
+
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
