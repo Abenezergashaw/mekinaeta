@@ -73,10 +73,7 @@ bot.on("message", async (msg) => {
 
   if (text === "a") {
     // bot.sendMessage(-1003059845988, "Hello group 👋");
-    bot.editMessageText("Updated message content here", {
-      chat_id: -1003059845988,
-      message_id: 3829621, // keep track of this when you first send
-    });
+    await insertNumbers([12, 45, 78, 90]);
   }
 
   console.log("Group chat_id is:", msg.chat.id);
@@ -451,6 +448,24 @@ async function deleteUser(phone) {
     console.error("Error:", err);
     // ❌ Return failure with error message
     return { success: false, message: err.message };
+  }
+}
+
+async function insertNumbers(selectedNumbers) {
+  try {
+    // make sure selectedNumbers is stored as string (JSON or comma-separated)
+    const numbersString = JSON.stringify(selectedNumbers);
+
+    const [result] = await pool.query(
+      "INSERT INTO numbers (selectedNumbers) VALUES (?)",
+      [numbersString]
+    );
+
+    console.log("Insert successful, new ID:", result.insertId);
+    return result.insertId;
+  } catch (err) {
+    console.error("Error inserting numbers:", err.message);
+    throw err; // rethrow if needed
   }
 }
 
