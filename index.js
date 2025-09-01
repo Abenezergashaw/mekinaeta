@@ -476,10 +476,10 @@ async function createUser(data) {
       [data.chosenNumber, 1]
     );
 
-    await pool.query("Update taken set phone = ? where number = ?", [
-      data.phone,
-      data.chosenNumber,
-    ]);
+    await pool.query(
+      "Update taken set phone = ?, status = 1, where number = ?",
+      [data.phone, data.chosenNumber]
+    );
 
     setTimeout(() => {
       editMessage(data.chosenNumber);
@@ -578,7 +578,10 @@ async function deleteUser(phone) {
           "UPDATE numbers SET selectedNumbers = ? WHERE id = 1",
           [JSON.stringify(updatedNumbers)]
         );
-        await pool.query("UPDATE taken SET phone = '' WHERE number = ?", [n]);
+        await pool.query(
+          "UPDATE taken SET phone = '',status=0 WHERE number = ?",
+          [n]
+        );
       }
     }
 
