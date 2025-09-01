@@ -276,7 +276,7 @@ bot.on("message", async (msg) => {
     return;
   } else if (text === "መረጃ 📌") {
     delete userStates[chatId];
-
+    console.log("merejajaja");
     getInfo(chatId);
     return;
   } else if (text === "እርዳታ ⓘ") {
