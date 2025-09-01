@@ -35,7 +35,8 @@ bot.onText(/\/start/, (msg) => {
       keyboard: [
         ["አዲስ ሰው መመዝገብ 👤", "የተያዙ ቁጥሮችን እይ 🔐"],
         ["የእጣ ቁጥር ይፍትሹ ❓", "በስልክ ቁጥር ፈልግ 🔎"],
-        ["መረጃ 📌", "እርዳታ ⓘ"],
+        ["መረጃ 📌", "ስልክ ቁጥር ያጥፉ ❌"],
+        ["እርዳታ ⓘ"],
       ],
       resize_keyboard: true, // makes buttons smaller
       one_time_keyboard: false, // keep keyboard open
@@ -80,6 +81,11 @@ bot.on("message", async (msg) => {
   } else if (text === "እርዳታ ⓘ") {
     delete userStates[chatId];
     getHelp(chatId);
+    return;
+  } else if (text === "ስልክ ቁጥር ያጥፉ ❌") {
+    userStates[chatId] = { step: "awaitingDeleteUser" };
+
+    bot.sendMessage(chatId, "❌ ለማጥፋት የሚፈልጉትን ስልክ ይላኩ።");
     return;
   }
 
@@ -180,6 +186,29 @@ bot.on("message", async (msg) => {
     delete userStates[chatId];
     return;
   }
+
+  if (userStates[chatId]?.step === "awaitingDeleteUser") {
+    // const number = parseInt(text, 10);
+    const phoneRegex = /^(09|07)\d{8}$/;
+    if (!phoneRegex.test(text)) {
+      bot.sendMessage(
+        chatId,
+        "❌ የተሳሳተ ስልክ ቁጥር። እባክዎ 09 ወይም 07 የሚጀምር 10 አሃዝ ያስገቡ።"
+      );
+      delete userStates[chatId];
+
+      return;
+    }
+
+    const result = await deleteUser(text);
+    if (result.success) {
+      bot.sendMessage(chatId, result.message);
+    } else {
+      bot.sendMessage(chatId, result.message);
+    }
+  }
+  delete userStates[chatId];
+  return;
 });
 
 async function sendPage(chatId, page, numbers) {
@@ -351,6 +380,48 @@ function getHelp(chatId) {
     chatId,
     `የቦት አጠቃቀም \n\n1. አዲስ ሰው መመዝገብ \n\n 'አዲስ ሰው መመዝገብ 👤' ሚለውን በተን ከተጫኑ በኋላ የሚመዘገበውን ሰው ስልክ ቁጥር ላኩ። ከዛ በኋላ የመረጡትን ቁጥር ይላኩ። \n\n 2. የተያዙ ቁጥሮችን ለማየት 'የተያዙ ቁጥሮችን እይ 🔐' የሚለውን በተን በመጫን ዝርዝሩን ማየት ይችላሉ። \n\n 3. የእጣ ቁጥር መያዝ አለመያዙን ቸክ ለማድረግ 'የእጣ ቁጥር ይፍትሹ ❓' የሚለውን በተን በመጫን ከዛም ቁጥሩን በመላክ ማየት ይችላሉ። \n\n 4. 'በስልክ ቁጥር ፈልግ 🔎' የሚለውን በተን በመጫን የተመዘገበ ደንበኛ መፈለግ ይችላሉ።`
   );
+}
+
+async function deleteUser(phone) {
+  try {
+    // 1. Get the user row
+    const [rows] = await pool.query("SELECT * FROM user WHERE phone = ?", [
+      phone,
+    ]);
+
+    if (rows.length === 0) {
+      return { success: false, message: "ስልክ ቁጥር አልተገኘም። እባክዎ እንደገና ይሞክሩ።" };
+    }
+
+    const numbers = rows[0].number;
+    const arr = numbers.split(",").map((num) => Number(num.trim()));
+
+    // 2. Loop over numbers and update selectedNumbers
+    for (const n of arr) {
+      const [selected] = await pool.query(
+        "SELECT selectedNumbers FROM numbers WHERE id = 1"
+      );
+      if (selected.length > 0) {
+        const a = JSON.parse(selected[0].selectedNumbers).sort();
+        const updatedNumbers = a.filter((num) => num !== n);
+
+        await pool.query(
+          "UPDATE numbers SET selectedNumbers = ? WHERE id = 1",
+          [JSON.stringify(updatedNumbers)]
+        );
+      }
+    }
+
+    // 3. Delete user
+    await pool.query("DELETE FROM user WHERE phone = ?", [phone]);
+
+    // ✅ Return success
+    return { success: true, message: "ስልክ ቁጥር በሚገባ ተደልቷል።" };
+  } catch (err) {
+    console.error("Error:", err);
+    // ❌ Return failure with error message
+    return { success: false, message: err.message };
+  }
 }
 
 app.listen(PORT, () => {
