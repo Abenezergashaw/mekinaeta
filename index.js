@@ -579,10 +579,10 @@ async function deleteUser(phone) {
         const a = JSON.parse(selected[0].selectedNumbers).sort();
         const updatedNumbers = a.filter((num) => num !== n);
 
-        await pool.query(
-          "UPDATE numbers SET selectedNumbers = ? WHERE id = 1",
-          [JSON.stringify(updatedNumbers)]
-        );
+        // await pool.query(
+        //   "UPDATE numbers SET selectedNumbers = ? WHERE id = 1",
+        //   [JSON.stringify(updatedNumbers)]
+        // );
         await pool.query(
           "UPDATE taken SET phone = '',status=0 WHERE number = ?",
           [n]
