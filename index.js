@@ -218,6 +218,10 @@ bot.on("callback_query", async (query) => {
   const data = query.data;
 
   const numbers = await getAllSelected();
+  if (!numbers) {
+    bot.sendMessage(chatId, "ምንም የተመረጠ የእጣ ቁጥር የለም።");
+    return;
+  }
 
   if (data.startsWith("next_")) {
     const page = parseInt(data.split("_")[1]) + 1;
@@ -289,7 +293,11 @@ async function getAllSelected() {
     const [rows] = await pool.query(
       "select selectedNumbers from numbers where id = 1"
     );
-    return JSON.parse(rows[0].selectedNumbers).sort();
+    if (rows.length > 0) {
+      return JSON.parse(rows[0].selectedNumbers).sort();
+    } else {
+      return false;
+    }
   } catch (err) {}
 }
 async function ifNumberIsSelected(n) {
