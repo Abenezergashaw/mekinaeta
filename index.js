@@ -542,11 +542,6 @@ async function getUser(phone) {
 
 async function getInfo(chatId) {
   try {
-    const [n] = await pool.query(
-      "select selectedNumbers from numbers where id = 1"
-    );
-    const numbers = JSON.parse(n[0].selectedNumbers).sort();
-
     const [u] = await pool.query("SELECT COUNT(*) AS total FROM user");
     const users = u[0].total;
     console.log("asdasdasdasd", users);
