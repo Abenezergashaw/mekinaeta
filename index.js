@@ -238,10 +238,9 @@ app.get("/", (req, res) => {
 
 async function createUser(data) {
   try {
-    const [rows] = await pool.query(
-      "SELECT number FROM users WHERE phone = ?",
-      [data.phone]
-    );
+    const [rows] = await pool.query("SELECT number FROM user WHERE phone = ?", [
+      data.phone,
+    ]);
     if (rows.length > 0) {
       const raw = rows[0].number;
       const asString =
@@ -261,14 +260,14 @@ async function createUser(data) {
       if (!list.includes(v)) list.push(v);
 
       const updated = list.join(",");
-      await pool.query("UPDATE users SET `number` = ? WHERE phone = ?", [
+      await pool.query("UPDATE user SET `number` = ? WHERE phone = ?", [
         updated,
         data.phone,
       ]);
     } else {
       // ❌ User does not exist → Insert new
       await pool.query(
-        "INSERT INTO users (phone, number, joined) VALUES (?, ?, ?)",
+        "INSERT INTO user (phone, number, joined) VALUES (?, ?, ?)",
         [data.phone, String(data.chosenNumber), true]
       );
       console.log("✅ New user inserted:", data.phone);
@@ -308,7 +307,7 @@ async function ifNumberIsSelected(n) {
 
 async function getUser(phone) {
   try {
-    const [rows] = await pool.query("SELECT * FROM users WHERE phone = ?", [
+    const [rows] = await pool.query("SELECT * FROM user WHERE phone = ?", [
       phone,
     ]);
     console.log(rows);
@@ -327,7 +326,7 @@ async function getInfo(chatId) {
     );
     const numbers = JSON.parse(n[0].selectedNumbers).sort();
 
-    const [u] = await pool.query("SELECT COUNT(*) AS total FROM users;");
+    const [u] = await pool.query("SELECT COUNT(*) AS total FROM user;");
     const users = u[0].total;
 
     bot.sendMessage(chatId, "የተመዘገቡ ደንበኞች፡ " + users);
