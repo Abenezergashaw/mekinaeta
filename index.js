@@ -235,7 +235,7 @@ async function editMessage(n, s) {
             if (s) {
               bot.sendMessage(CHAT_ID, `እጣ ቁጥር ${n} ተይዟል።`);
             } else {
-              bot.sendMessage(CHAT_ID, `እጣ ቁጥር ${n} ተለቋል።`);
+              // bot.sendMessage(CHAT_ID, `እጣ ቁጥር ${n} ተለቋል።`);
             }
             return;
           } else {
@@ -591,13 +591,13 @@ async function deleteUser(phone) {
         "UPDATE taken SET phone = '',status=0 WHERE number = ?",
         [n]
       );
-      editMessage(n, false);
       console.log("deleted");
       // }
     }
 
     // 3. Delete user
     await pool.query("DELETE FROM user WHERE phone = ?", [phone]);
+    editMessage(0, false);
     // ✅ Return success
     return { success: true, message: "ስልክ ቁጥር በሚገባ ተደልቷል።" };
   } catch (err) {
