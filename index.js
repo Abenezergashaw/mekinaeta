@@ -547,7 +547,7 @@ async function getInfo(chatId) {
     );
     const numbers = JSON.parse(n[0].selectedNumbers).sort();
 
-    const [u] = await pool.query("SELECT COUNT(*) AS total FROM user;");
+    const [u] = await pool.query("SELECT COUNT(*) AS total FROM user");
     const users = u[0].total;
 
     bot.sendMessage(chatId, "የተመዘገቡ ደንበኞች፡ " + users);
