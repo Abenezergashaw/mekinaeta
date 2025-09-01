@@ -170,7 +170,7 @@ async function sendPage(chatId, page, numbers) {
 //   //bot.sendMessage(CHAT_ID, "♻️ Refreshed all messages and saved to storage!");
 // }
 
-async function editMessage(n) {
+async function editMessage(n, s) {
   if (messageData.length === 0) {
     try {
       await sendNumbersWithPhones(CHAT_ID);
@@ -232,7 +232,11 @@ async function editMessage(n) {
 
             // send fresh messages
             await sendNumbersWithPhones(CHAT_ID);
-            bot.sendMessage(CHAT_ID, `እጣ ቁጥር ${n} ተይዟል።`);
+            if (s) {
+              bot.sendMessage(CHAT_ID, `እጣ ቁጥር ${n} ተይዟል።`);
+            } else {
+              bot.sendMessage(CHAT_ID, `እጣ ቁጥር ${n} ተለቋል።`);
+            }
             return;
           } else {
             console.error("Unexpected error editing message:", err.message);
@@ -482,7 +486,7 @@ async function createUser(data) {
     );
 
     setTimeout(() => {
-      editMessage(data.chosenNumber);
+      editMessage(data.chosenNumber, true);
     }, 150);
 
     // console.log("✅ Game inserted successfully");
@@ -587,12 +591,13 @@ async function deleteUser(phone) {
         "UPDATE taken SET phone = '',status=0 WHERE number = ?",
         [n]
       );
+      console.log("deleted");
       // }
     }
 
     // 3. Delete user
     await pool.query("DELETE FROM user WHERE phone = ?", [phone]);
-    editMessage();
+    editMessage(n, false);
     // ✅ Return success
     return { success: true, message: "ስልክ ቁጥር በሚገባ ተደልቷል።" };
   } catch (err) {
