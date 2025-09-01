@@ -58,6 +58,11 @@ bot.on("message", async (msg) => {
     delete userStates[chatId];
 
     const numbers = await getAllSelected();
+    if (!numbers) {
+      bot.sendMessage(chatId, "ምንም የተመረጠ የእጣ ቁጥር የለም።");
+      return;
+    }
+
     sendPage(chatId, 0, numbers);
   } else if (text === "የእጣ ቁጥር ይፍትሹ ❓") {
     userStates[chatId] = { step: "awaitingNumberCheck" };
