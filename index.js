@@ -549,7 +549,7 @@ async function getInfo(chatId) {
 
     const [u] = await pool.query("SELECT COUNT(*) AS total FROM user");
     const users = u[0].total;
-
+    console.log("asdasdasdasd", users);
     bot.sendMessage(chatId, "የተመዘገቡ ደንበኞች፡ " + users);
   } catch (err) {}
 }
