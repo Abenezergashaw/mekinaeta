@@ -232,6 +232,7 @@ async function editMessage(n, s) {
 
             // send fresh messages
             await sendNumbersWithPhones(CHAT_ID);
+            console.log(s, typeof s);
             if (s) {
               bot.sendMessage(CHAT_ID, `እጣ ቁጥር ${n} ተይዟል።`);
             } else {
