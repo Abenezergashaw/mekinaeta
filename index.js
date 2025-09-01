@@ -477,7 +477,7 @@ async function createUser(data) {
     );
 
     await pool.query(
-      "Update taken set phone = ?, status = 1, where number = ?",
+      "Update taken set phone = ?, status = 1 where number = ?",
       [data.phone, data.chosenNumber]
     );
 
@@ -496,8 +496,13 @@ async function getAllSelected() {
     const [rows] = await pool.query(
       "select selectedNumbers from numbers where id = 1"
     );
-    if (rows.length > 0) {
-      return JSON.parse(rows[0].selectedNumbers).sort();
+
+    const [n] = await pool.query("select number from taken where status = 1");
+
+    console.log(n);
+
+    if (n.length > 0) {
+      return n.map((item) => item.number);
     } else {
       return false;
     }
@@ -509,10 +514,15 @@ async function ifNumberIsSelected(n) {
       "select selectedNumbers from numbers where id = 1"
     );
 
-    const numbers = JSON.parse(rows[0].selectedNumbers);
-    console.log("Heyyy: ", JSON.parse(rows[0].selectedNumbers));
-    // console.log();
-    return numbers.map(String).includes(String(n));
+    const [na] = await pool.query(
+      "select * from taken where number = ?  AND status = 1",
+      [n]
+    );
+    if (na.length > 0) {
+      return true;
+    } else {
+      return 0;
+    }
   } catch (err) {}
 }
 
