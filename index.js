@@ -591,13 +591,13 @@ async function deleteUser(phone) {
         "UPDATE taken SET phone = '',status=0 WHERE number = ?",
         [n]
       );
+      editMessage(n, false);
       console.log("deleted");
       // }
     }
 
     // 3. Delete user
     await pool.query("DELETE FROM user WHERE phone = ?", [phone]);
-    editMessage(n, false);
     // ✅ Return success
     return { success: true, message: "ስልክ ቁጥር በሚገባ ተደልቷል።" };
   } catch (err) {
