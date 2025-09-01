@@ -204,7 +204,11 @@ async function editMessage(n, s) {
             chat_id: CHAT_ID,
             message_id: messageData[i].id,
           });
-          bot.sendMessage(CHAT_ID, `እጣ ቁጥር ${n} ተይዟል።`);
+          if (s) {
+            bot.sendMessage(CHAT_ID, `እጣ ቁጥር ${n} ተይዟል።`);
+          } else {
+            bot.sendMessage(CHAT_ID, `እጣ ቁጥር ${n} ተለቋል።`);
+          }
 
           messageData[i].text = newText;
           saveMessageData(); // persist after each edit
@@ -236,7 +240,7 @@ async function editMessage(n, s) {
             if (s) {
               bot.sendMessage(CHAT_ID, `እጣ ቁጥር ${n} ተይዟል።`);
             } else {
-              // bot.sendMessage(CHAT_ID, `እጣ ቁጥር ${n} ተለቋል።`);
+              bot.sendMessage(CHAT_ID, `እጣ ቁጥር ${n} ተለቋል።`);
             }
             return;
           } else {
