@@ -572,22 +572,22 @@ async function deleteUser(phone) {
 
     // 2. Loop over numbers and update selectedNumbers
     for (const n of arr) {
-      const [selected] = await pool.query(
-        "SELECT selectedNumbers FROM numbers WHERE id = 1"
-      );
-      if (selected.length > 0) {
-        const a = JSON.parse(selected[0].selectedNumbers).sort();
-        const updatedNumbers = a.filter((num) => num !== n);
+      // const [selected] = await pool.query(
+      //   "SELECT selectedNumbers FROM numbers WHERE id = 1"
+      // );
+      // if (selected.length > 0) {
+      //   const a = JSON.parse(selected[0].selectedNumbers).sort();
+      //   const updatedNumbers = a.filter((num) => num !== n);
 
-        // await pool.query(
-        //   "UPDATE numbers SET selectedNumbers = ? WHERE id = 1",
-        //   [JSON.stringify(updatedNumbers)]
-        // );
-        await pool.query(
-          "UPDATE taken SET phone = '',status=0 WHERE number = ?",
-          [n]
-        );
-      }
+      // await pool.query(
+      //   "UPDATE numbers SET selectedNumbers = ? WHERE id = 1",
+      //   [JSON.stringify(updatedNumbers)]
+      // );
+      await pool.query(
+        "UPDATE taken SET phone = '',status=0 WHERE number = ?",
+        [n]
+      );
+      // }
     }
 
     // 3. Delete user
