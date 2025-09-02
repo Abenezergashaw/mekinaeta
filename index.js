@@ -55,7 +55,8 @@ async function sendNumbersWithPhones(chatId) {
     "SELECT number, phone FROM taken ORDER BY number ASC"
   );
   const lines = rows.map(
-    (r) => `${r.number} -- ${r.phone && r.phone.trim() !== "" ? r.phone : ""}`
+    (r) =>
+      `${r.number}👉${r.phone && r.phone.trim() !== "" ? r.phone + "🙏" : ""}`
   );
   const chunks = chunkArray(lines, 200);
 
