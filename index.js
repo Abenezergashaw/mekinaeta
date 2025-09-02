@@ -189,9 +189,7 @@ async function editMessage(n, s) {
 
     const lines = rows.map(
       (r) =>
-        `${r.number} -- ${
-          r.phone && r.phone.trim() !== "" ? r.phone : "          "
-        }`
+        `${r.number}👉${r.phone && r.phone.trim() !== "" ? r.phone + "🙏" : ""}`
     );
 
     const chunks = chunkArray(lines, 200);
