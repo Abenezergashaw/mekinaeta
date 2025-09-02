@@ -500,10 +500,16 @@ async function createUser(data) {
       [data.chosenNumber, 1]
     );
 
-    await pool.query(
-      "Update taken set phone = ?, status = 1 where number = ?",
-      [data.phone, data.chosenNumber]
+    const [a] = await pool.query(
+      "select phone,status from taken where number = ?",
+      [data.chosenNumber]
     );
+    if (a[0].phone === "" && a[0].status === 0) {
+      await pool.query(
+        "Update taken set phone = ?, status = 1 where number = ?",
+        [data.phone, data.chosenNumber]
+      );
+    }
 
     setTimeout(() => {
       editMessage(data.chosenNumber, true);
