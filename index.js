@@ -509,8 +509,9 @@ async function createUser(data, chatId) {
         [data.phone, data.chosenNumber]
       );
       bot.sendMessage(chatId, "🎉 በትክክል ተመዝግበዋል። ✅");
+    } else {
+      bot.sendMessage(chatId, " የእጣ ቁጥር ተይዟል ");
     }
-    bot.sendMessage(chatId, " የእጣ ቁጥር ተይዟል ");
 
     setTimeout(() => {
       editMessage(data.chosenNumber, true);
