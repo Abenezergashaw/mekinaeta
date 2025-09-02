@@ -270,14 +270,14 @@ bot.on("message", async (msg) => {
 
   // Step 2: Validate phone
   if (userStates[chatId]?.step === "awaitingPhone") {
-    const phoneRegex = /^(09|07)\d{7}$/;
-    if (!phoneRegex.test(text)) {
-      bot.sendMessage(
-        chatId,
-        "❌ የተሳሳተ ስልክ ቁጥር። እባክዎ 09 ወይም 07 የሚጀምር 10 አሃዝ ያስገቡ።"
-      );
-      return;
-    }
+    // const phoneRegex = /^(09|07)\d{7}$/;
+    // if (!phoneRegex.test(text)) {
+    //   bot.sendMessage(
+    //     chatId,
+    //     "❌ የተሳሳተ ስልክ ቁጥር። እባክዎ 09 ወይም 07 የሚጀምር 10 አሃዝ ያስገቡ።"
+    //   );
+    //   return;
+    // }
     // Save phone
     userStates[chatId].phone = text;
     userStates[chatId].step = "awaitingNumber";
