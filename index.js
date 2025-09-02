@@ -132,7 +132,7 @@ async function sendPage(chatId, page, numbers) {
 
   await bot.sendMessage(chatId, message, opts);
 }
-editMessage(0, false);
+// editMessage(0, false);
 async function editMessage(n, s) {
   if (messageData.length === 0) {
     try {
@@ -166,7 +166,7 @@ async function editMessage(n, s) {
             message_id: messageData[i].id,
           });
           if (s) {
-            bot.sendMessage(CHAT_ID, `እጣ ቁጥር ${n} ተይዟል።`);
+            bot.sendMessage(CHAT_ID, `እጣ ቁጥር ${n} ተመዝግቧል። መልካም ዕድል!`);
           } else {
             // bot.sendMessage(CHAT_ID, `እጣ ቁጥር ${n} ተለቋል።`);
           }
@@ -199,7 +199,7 @@ async function editMessage(n, s) {
             await sendNumbersWithPhones(CHAT_ID);
             console.log(s, typeof s);
             if (s) {
-              bot.sendMessage(CHAT_ID, `እጣ ቁጥር ${n} ተይዟል።`);
+              bot.sendMessage(CHAT_ID, `እጣ ቁጥር ${n} ተመዝግቧል። መልካም ዕድል!`);
             } else {
               // bot.sendMessage(CHAT_ID, `እጣ ቁጥር ${n} ተለቋል።`);
             }
@@ -405,6 +405,7 @@ bot.on("message", async (msg) => {
     } else {
       userStates[chatId] = { step: "awaitingeditphone" };
       userStates[chatId].number = text;
+      bot.sendMessage(chatId, "ስልክ ቁጥር ይላኩልን። 🔢");
       return;
     }
 
