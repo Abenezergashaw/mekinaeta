@@ -377,7 +377,7 @@ bot.on("message", async (msg) => {
     } else {
       try {
         const [rows] = await pool.query(
-          "update taken set phone = ? where number = ?",
+          "update taken set phone = ?,status=0 where number = ?",
           ["", Number(text)]
         );
         editMessage(0, false);
