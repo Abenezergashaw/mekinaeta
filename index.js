@@ -495,10 +495,10 @@ async function createUser(data, chatId) {
       console.log("✅ New user inserted:", data.phone);
     }
 
-    await pool.query(
-      "Update numbers set selectedNumbers = json_array_append(selectedNumbers, '$', ?) where id = ?",
-      [data.chosenNumber, 1]
-    );
+    // await pool.query(
+    //   "Update numbers set selectedNumbers = json_array_append(selectedNumbers, '$', ?) where id = ?",
+    //   [data.chosenNumber, 1]
+    // );
 
     const [a] = await pool.query(
       "select phone,status from taken where number = ?",
