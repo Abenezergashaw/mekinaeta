@@ -3,6 +3,8 @@ const mysql = require("mysql2/promise");
 const fs = require("fs");
 const token = "8260792818:AAG-MnHOaeqZmLkW4_Frl8CHwMhaz9EZ1ck";
 const CHAT_ID = "-1003059845988";
+
+// const CHAT_ID = "-1003038960718";
 const bot = new TelegramBot(token, { polling: true });
 
 const storageFile = "./message_ids.json";
@@ -304,7 +306,7 @@ bot.on("message", async (msg) => {
 
   // Step 2: Validate phone
   if (userStates[chatId]?.step === "awaitingPhone") {
-    const phoneRegex = /^(09|07)\d{8}$/;
+    const phoneRegex = /^(09|07)\d{7}$/;
     if (!phoneRegex.test(text)) {
       bot.sendMessage(
         chatId,
