@@ -300,9 +300,8 @@ bot.on("message", async (msg) => {
     userStates[chatId].chosenNumber = number;
 
     // Done
-    bot.sendMessage(chatId, "🎉 በትክክል ተመዝግበዋል። ✅");
     console.log("Registered User:");
-    await createUser(userStates[chatId]);
+    await createUser(userStates[chatId], chatId);
     // Clear state
     delete userStates[chatId];
     return;
@@ -458,7 +457,7 @@ bot.on("callback_query", async (query) => {
   bot.answerCallbackQuery(query.id);
 });
 
-async function createUser(data) {
+async function createUser(data, chatId) {
   try {
     const [rows] = await pool.query("SELECT number FROM user WHERE phone = ?", [
       data.phone,
@@ -509,7 +508,9 @@ async function createUser(data) {
         "Update taken set phone = ?, status = 1 where number = ?",
         [data.phone, data.chosenNumber]
       );
+      bot.sendMessage(chatId, "🎉 በትክክል ተመዝግበዋል። ✅");
     }
+    bot.sendMessage(chatId, " የእጣ ቁጥር ተይዟል ");
 
     setTimeout(() => {
       editMessage(data.chosenNumber, true);
