@@ -260,6 +260,10 @@ bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
   const text = msg.text;
 
+  if (text === "a") {
+    console.log("group chat id", chatId);
+  }
+
   if (text === "አዲስ ሰው መመዝገብ 👤") {
     userStates[chatId] = { step: "awaitingPhone" };
     bot.sendMessage(chatId, "እባክዎ የስልክ ቁጥርዎን ያስገቡ (09... or 07...) 📱");
