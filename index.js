@@ -2,9 +2,9 @@ const TelegramBot = require("node-telegram-bot-api");
 const mysql = require("mysql2/promise");
 const fs = require("fs");
 const token = "8260792818:AAG-MnHOaeqZmLkW4_Frl8CHwMhaz9EZ1ck";
-const CHAT_ID = "-1003059845988";
+// const CHAT_ID = "-1003059845988";
 
-// const CHAT_ID = "-1003038960718";
+const CHAT_ID = "-1003038960718";
 const bot = new TelegramBot(token, { polling: true });
 
 const storageFile = "./message_ids.json";
@@ -86,8 +86,8 @@ bot.onText(/\/start/, (msg) => {
     reply_markup: {
       keyboard: [
         ["አዲስ ሰው መመዝገብ 👤", "የተያዙ ቁጥሮችን እይ 🔐"],
-        ["የእጣ ቁጥር ይፍትሹ ❓", "በስልክ ቁጥር ፈልግ 🔎"],
-        ["መረጃ 📌", "ስልክ ቁጥር ያጥፉ ❌"],
+        ["የእጣ ቁጥር ይፍትሹ ❓"],
+        ["ስልክ ቁጥር ማስትካክያ ✎", "ስልክ ቁጥር ያጥፉ ❌"],
         ["እርዳታ ⓘ"],
       ],
       resize_keyboard: true, // makes buttons smaller
@@ -132,47 +132,7 @@ async function sendPage(chatId, page, numbers) {
 
   await bot.sendMessage(chatId, message, opts);
 }
-
-// async function editMessage() {
-//   if (messageData.length === 0) {
-//     try {
-//       await sendNumbersWithPhones(CHAT_ID);
-//     } catch (err) {
-//       console.error(err);
-//       bot.sendMessage(CHAT_ID, "❌ Failed to send numbers.");
-//     }
-//     return;
-//   }
-
-//   const [rows] = await pool.query(
-//     "SELECT number, phone FROM taken ORDER BY number ASC"
-//   );
-//   const lines = rows.map(
-//     (r) =>
-//       `${r.number} -- ${
-//         r.phone && r.phone.trim() !== "" ? r.phone : "          "
-//       }`
-//   );
-//   const chunks = chunkArray(lines, 200);
-
-//   for (let i = 0; i < chunks.length; i++) {
-//     const newText = chunks[i].join("\n");
-
-//     if (messageData[i].text !== newText) {
-//       await bot.editMessageText(newText, {
-//         chat_id: CHAT_ID,
-//         message_id: messageData[i].id,
-//       });
-
-//       messageData[i].text = newText;
-//       saveMessageData(); // persist after each edit
-//     }
-
-//     await new Promise((resolve) => setTimeout(resolve, 500));
-//   }
-//   //bot.sendMessage(CHAT_ID, "♻️ Refreshed all messages and saved to storage!");
-// }
-
+editMessage(0, false);
 async function editMessage(n, s) {
   if (messageData.length === 0) {
     try {
@@ -288,6 +248,10 @@ bot.on("message", async (msg) => {
     userStates[chatId] = { step: "awaitingPhoneSearch" };
     bot.sendMessage(chatId, "🔎 እባክዎ ስልክ ቁጥሩን ይላኩልን");
     return;
+  } else if (text === "ስልክ ቁጥር ማስትካክያ ✎") {
+    userStates[chatId] = { step: "awiaitngEditNumber" };
+    bot.sendMessage(chatId, "🔎 እባክዎ የእጣ ቁጥሩን ይላኩልን");
+    return;
   } else if (text === "መረጃ 📌") {
     delete userStates[chatId];
     console.log("merejajaja");
@@ -300,7 +264,7 @@ bot.on("message", async (msg) => {
   } else if (text === "ስልክ ቁጥር ያጥፉ ❌") {
     userStates[chatId] = { step: "awaitingDeleteUser" };
 
-    bot.sendMessage(chatId, "❌ ለማጥፋት የሚፈልጉትን ስልክ ይላኩ።");
+    bot.sendMessage(chatId, "❌ እባክዎ የእጣ ቁጥሩን ይላኩልን።");
     return;
   }
 
@@ -404,24 +368,69 @@ bot.on("message", async (msg) => {
 
   if (userStates[chatId]?.step === "awaitingDeleteUser") {
     // const number = parseInt(text, 10);
-    const phoneRegex = /^(09|07)\d{8}$/;
-    if (!phoneRegex.test(text)) {
+    const number = text;
+
+    if (isNaN(number) || number < 1 || number > 2000) {
       bot.sendMessage(
         chatId,
-        "❌ የተሳሳተ ስልክ ቁጥር። እባክዎ 09 ወይም 07 የሚጀምር 10 አሃዝ ያስገቡ።"
+        "❌ ትክክለኛ ቁጥር አልሰጠም። እባክዎ 1 - 2000 መካከል ቁጥር ያስገቡ 🔢"
       );
+    } else {
+      try {
+        const [rows] = await pool.query(
+          "update taken set phone = ? where number = ?",
+          ["", Number(text)]
+        );
+        editMessage(0, false);
+      } catch (error) {
+        console.log(error);
+      }
       delete userStates[chatId];
-
       return;
     }
 
-    const result = await deleteUser(text);
-    if (result.success) {
-      bot.sendMessage(chatId, result.message);
-    } else {
-      bot.sendMessage(chatId, result.message);
-    }
+    delete userStates[chatId];
+    return;
   }
+
+  if (userStates[chatId]?.step === "awiaitngEditNumber") {
+    // const number = parseInt(text, 10);
+    const number = text;
+
+    if (isNaN(number) || number < 1 || number > 2000) {
+      bot.sendMessage(
+        chatId,
+        "❌ ትክክለኛ ቁጥር አልሰጠም። እባክዎ 1 - 2000 መካከል ቁጥር ያስገቡ 🔢"
+      );
+    } else {
+      userStates[chatId] = { step: "awaitingeditphone" };
+      userStates[chatId].number = text;
+      return;
+    }
+
+    delete userStates[chatId];
+    return;
+  }
+
+  if (userStates[chatId]?.step === "awaitingeditphone") {
+    // const number = parseInt(text, 10);
+    const number = text;
+
+    const n = userStates[chatId].number;
+    try {
+      const [rows] = await pool.query(
+        "update taken set phone = ? where number = ?",
+        [text, n]
+      );
+      editMessage(0, false);
+    } catch (error) {
+      console.log(error);
+    }
+
+    delete userStates[chatId];
+    return;
+  }
+
   delete userStates[chatId];
   return;
 });
