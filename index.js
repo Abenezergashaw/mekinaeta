@@ -423,6 +423,7 @@ bot.on("message", async (msg) => {
         [text, n]
       );
       editMessage(0, false);
+      bot.sendMessage(chatId, "ስልክ ቁጥር በሚገባ ተደልቷል።");
     } catch (error) {
       console.log(error);
     }
