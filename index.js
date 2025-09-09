@@ -20,7 +20,7 @@ const storageFile = "./message_ids.json";
 // });
 const pool = mysql.createPool({
   host: "localhost",
-  user: "abeni",
+  user: "root",
   password: "123456",
   database: "mekina_eta",
 });
