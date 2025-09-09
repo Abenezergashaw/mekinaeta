@@ -526,9 +526,9 @@ async function createUser(data, chatId) {
 
 async function getAllSelected() {
   try {
-    const [rows] = await pool.query(
-      "select selectedNumbers from numbers where id = 1"
-    );
+    // const [rows] = await pool.query(
+    //   "select selectedNumbers from numbers where id = 1"
+    // );
 
     const [n] = await pool.query("select number from taken where status = 1");
 
@@ -543,9 +543,9 @@ async function getAllSelected() {
 }
 async function ifNumberIsSelected(n) {
   try {
-    const [rows] = await pool.query(
-      "select selectedNumbers from numbers where id = 1"
-    );
+    // const [rows] = await pool.query(
+    //   "select selectedNumbers from numbers where id = 1"
+    // );
 
     const [na] = await pool.query(
       "select * from taken where number = ?  AND status = 1",
