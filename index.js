@@ -166,7 +166,7 @@ async function editMessage(n, s) {
             message_id: messageData[i].id,
           });
           if (s) {
-            bot.sendMessage(CHAT_ID, `እጣ ቁጥር ${n} ተመዝግቧል። መልካም ዕድል!`);
+            // bot.sendMessage(CHAT_ID, `እጣ ቁጥር ${n} ተመዝግቧል። መልካም ዕድል!`);
           } else {
             // bot.sendMessage(CHAT_ID, `እጣ ቁጥር ${n} ተለቋል።`);
           }
@@ -199,7 +199,7 @@ async function editMessage(n, s) {
             await sendNumbersWithPhones(CHAT_ID);
             console.log(s, typeof s);
             if (s) {
-              bot.sendMessage(CHAT_ID, `እጣ ቁጥር ${n} ተመዝግቧል። መልካም ዕድል!`);
+              // bot.sendMessage(CHAT_ID, `እጣ ቁጥር ${n} ተመዝግቧል። መልካም ዕድል!`);
             } else {
               // bot.sendMessage(CHAT_ID, `እጣ ቁጥር ${n} ተለቋል።`);
             }
