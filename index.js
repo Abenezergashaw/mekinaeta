@@ -556,7 +556,9 @@ async function ifNumberIsSelected(n) {
     } else {
       return 0;
     }
-  } catch (err) {}
+  } catch (err) {
+    console.log(err);
+  }
 }
 
 async function getUser(phone) {
