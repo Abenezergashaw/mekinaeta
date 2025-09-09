@@ -381,6 +381,7 @@ bot.on("message", async (msg) => {
           ["", Number(text)]
         );
         editMessage(0, false);
+        bot.sendMessage(chatId, "ስልክ ቁጥር በሚገባ ተደልቷል");
       } catch (error) {
         console.log(error);
       }
@@ -423,7 +424,7 @@ bot.on("message", async (msg) => {
         [text, n]
       );
       editMessage(0, false);
-      bot.sendMessage(chatId, "ስልክ ቁጥር በሚገባ ተደልቷል።");
+      bot.sendMessage(chatId, "ስልክ ቁጥር በሚገባ ተቀይሯል");
     } catch (error) {
       console.log(error);
     }
