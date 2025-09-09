@@ -21,7 +21,7 @@ const storageFile = "./message_ids.json";
 const pool = mysql.createPool({
   host: "localhost",
   user: "root",
-  password: "",
+  password: "123456",
   database: "mekina_eta",
 });
 
