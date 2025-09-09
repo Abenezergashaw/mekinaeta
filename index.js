@@ -539,7 +539,9 @@ async function getAllSelected() {
     } else {
       return false;
     }
-  } catch (err) {}
+  } catch (err) {
+    console.log(err);
+  }
 }
 async function ifNumberIsSelected(n) {
   try {
@@ -572,7 +574,9 @@ async function getUser(phone) {
     } else {
       return false;
     }
-  } catch (err) {}
+  } catch (err) {
+    console.log(err);
+  }
 }
 
 async function getInfo(chatId) {
@@ -581,7 +585,9 @@ async function getInfo(chatId) {
     const users = u[0].total;
     console.log("asdasdasdasd", users);
     bot.sendMessage(chatId, "የተመዘገቡ ደንበኞች፡ " + users);
-  } catch (err) {}
+  } catch (err) {
+    console.log(err);
+  }
 }
 
 function getHelp(chatId) {
